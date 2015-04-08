@@ -13,7 +13,7 @@ S3PATH=mysql_backup/
 # when running via cron, the PATHs MIGHT be different. If you have a custom/manual MYSQL install, you should set this manually like MYSQLDUMPPATH=/usr/local/mysql/bin/
 MYSQLDUMPPATH=
 #tmp path.
-TMP_PATH=~/
+TMP_PATH=/tmp
 
 DATESTAMP=$(date +".%m.%d.%Y")
 DAY=$(date +"%d")
