@@ -18,8 +18,8 @@ TMP_PATH=~/
 DATESTAMP=$(date +".%m.%d.%Y")
 DAY=$(date +"%d")
 DAYOFWEEK=$(date +"%A")
-
 PERIOD=${1-day}
+
 if [ ${PERIOD} = "auto" ]; then
 	if [ ${DAY} = "01" ]; then
         	PERIOD=month
