@@ -2,7 +2,7 @@
 # ================================================================== #
 # Config script to backup databases and directories/files via s3cmd.
 # ================================================================== #
-# Version: 1.0.1
+# Version: 1.0.2
 # ================================================================== #
 # Updates at: https://github.com/ivan-nginx/Backup-to-Amazon-S3
 # This script is licensed under MIT license
@@ -16,8 +16,10 @@ DIRS="/etc
 /root/backup-config.sh
 /root/backup-exclude.txt
 /var/spool/cron/root
-/var/www/php-cgi
-/var/www/vhosts/site.com"
+/var/www/php-cgi"
+
+SEPARATED_DIRS="/var/www/vhosts/site.com
+/var/www/vhosts/site2.com"
 
 # if we want to exclude files/directories, uncomment EXCLUDE variable and create backup-exclude.txt file with files/directories like this:
 #/var/www/vhosts/site.com/directory
