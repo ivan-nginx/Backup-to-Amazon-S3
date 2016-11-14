@@ -32,6 +32,7 @@ echo "========================="
 echo "$(date +'%Y-%b-%d [%R]')"
 echo "========================="
 echo "Selected period: $PERIOD."
+echo
 
 # we want at least two backups, two months, two weeks, and two days
 #echo "Removing old backup (2 ${PERIOD}s ago)..."
@@ -43,30 +44,26 @@ echo "Selected period: $PERIOD."
 #echo "Past backup moved."
 
 # List all the databases, exclude standart databases
-DATABASES=`mysql -u root -p$MYSQLPASS -e "SHOW DATABASES;" | tr -d "| " | grep -v "\(Database\|information_schema\|performance_schema\|mysql\|test\)"`
+DATABASES=`mysql -u root -p$MYSQLPASS -e "SHOW DATABASES;" | tr -d "| " | grep -v "\(Database\|information_schema\|performance_schema\|mysql\|test\|wp-reportage24\)"`
 
 # Loop the databases
 for DB in $DATABASES; do
 
 	# dump database
-	echo "Starting backing up the database to a file..."
-	${MYSQLDUMPPATH}mysqldump --quick --user=${MYSQLROOT} --password=${MYSQLPASS} ${DB} > ${TMP_PATH}${DB}.sql
-	echo "Done backing up the database to a file."
-
-	echo "Starting compression..."
-	tar czf ${TMP_PATH}${DATESTAMP}${DB}.tar.gz ${TMP_PATH}${DB}.sql
-	echo "Done compressing the backup file."
+	echo "Starting backing up '${DB}' database..."
+	${MYSQLDUMPPATH}mysqldump --quick --user=${MYSQLROOT} --password=${MYSQLPASS} ${DB} | gzip > ${TMP_PATH}${DATESTAMP}${DB}.gz
+	echo "Done backing up database to '${DATESTAMP}${DB}.gz' compressed file."
 
 	# upload all databases
-	echo "Uploading the new backup..."
-	s3cmd put -f ${TMP_PATH}${DATESTAMP}${DB}.tar.gz s3://${S3BUCKET}/${S3PATH}${PERIOD}/
-	echo "New backup uploaded."
+	echo "Uploading '${DATESTAMP}${DB}.gz' database backup..."
+	s3cmd put -f ${TMP_PATH}${DATESTAMP}${DB}.gz s3://${S3BUCKET}/${S3PATH}${PERIOD}/
+	echo "Database backup '${DATESTAMP}${DB}.gz' uploaded."
 
-	echo "Removing the cache files..."
-	# remove databases dump
-	rm ${TMP_PATH}${DB}.sql
-	rm ${TMP_PATH}${DATESTAMP}${DB}.tar.gz
-	echo "Cache file removed..."
+	# remove databases dumps
+	echo "Removing local '${DATESTAMP}${DB}.gz' file..."
+	rm ${TMP_PATH}${DATESTAMP}${DB}.gz
+	echo "Local file '${DATESTAMP}${DB}.gz' was removed."
+	echo
 
 done;
 
