@@ -44,7 +44,7 @@ echo
 #echo "Past backup moved."
 
 # List all the databases, exclude standart databases
-DATABASES=`mysql -u root -p$MYSQLPASS -e "SHOW DATABASES;" | tr -d "| " | grep -v "\(Database\|information_schema\|performance_schema\|mysql\|test\|wp-reportage24\)"`
+DATABASES=`mysql -u root -p$MYSQLPASS -e "SHOW DATABASES;" | tr -d "| " | grep -v "\(Database\|information_schema\|performance_schema\|mysql\|test\)"`
 
 # Loop the databases
 for DB in $DATABASES; do
