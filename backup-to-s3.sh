@@ -2,7 +2,7 @@
 # ================================================================== #
 # Shell script to backup databases and directories/files via s3cmd.
 # ================================================================== #
-# Version: 1.0.4
+# Version: 1.0.5
 # ================================================================== #
 # Parts copyright (c) 2012 woxxy https://github.com/woxxy/MySQL-backup-to-Amazon-S3
 # Parts copyright (c) 2015 betweenbrain https://github.com/betweenbrain/MySQL-backup-to-Amazon-S3
@@ -34,7 +34,7 @@ echo "========================="
 echo "Selected period: $PERIOD."
 echo
 
-# we want at least two backups, two months, two weeks, and two days
+# We want at least two backups, two months, two weeks, and two days
 #echo "Removing old backup (2 ${PERIOD}s ago)..."
 #s3cmd del --recursive s3://${S3BUCKET}/${S3PATH}previous_${PERIOD}/
 #echo "Old backup removed."
@@ -49,35 +49,70 @@ DATABASES=`mysql -u root -p$MYSQLPASS -e "SHOW DATABASES;" | tr -d "| " | grep -
 # Loop the databases
 for DB in $DATABASES; do
 
-	# dump database
-	echo "Starting backing up '${DB}' database..."
+	# Dump database
+	echo "Starting backing up '${DB}' database into '${DATESTAMP}${DB}.gz'..."
 	${MYSQLDUMPPATH}mysqldump --quick --user=${MYSQLROOT} --password=${MYSQLPASS} ${DB} | gzip > ${TMP_PATH}${DATESTAMP}${DB}.gz
-	echo "Done backing up database to '${DATESTAMP}${DB}.gz' compressed file."
+	echo "Done backing up database to compressed file."
 
-	# upload all databases
-	echo "Uploading '${DATESTAMP}${DB}.gz' database backup..."
+	# Upload all databases
+	echo "Uploading database backup..."
 	s3cmd put -f ${TMP_PATH}${DATESTAMP}${DB}.gz s3://${S3BUCKET}/${S3PATH}${PERIOD}/
-	echo "Database backup '${DATESTAMP}${DB}.gz' uploaded."
+	echo "Database backup was uploaded."
 
-	# remove databases dumps
-	echo "Removing local '${DATESTAMP}${DB}.gz' file..."
+	# Remove databases dumps
+	echo "Removing local backup..."
 	rm ${TMP_PATH}${DATESTAMP}${DB}.gz
-	echo "Local file '${DATESTAMP}${DB}.gz' was removed."
+	echo "Local backup was removed."
 	echo
 
 done;
 
-	# backup defined files/directories with exclude
-	echo "Starting compression directories..."
-	tar pzcf ${TMP_PATH}${DATESTAMP}${HOSTNAME}.tar.gz ${DIRS} ${EXCLUDE}
-	echo "Done compressing directories."
+# Backup common files/directories with/without exclude list
+echo "Starting compression common files/directories into '${DATESTAMP}common-${HOSTNAME}-${HOSTTYPE}.tar.gz'..."
+echo "Common files listing:"
+echo "-------------------------"
+echo "${DIRS}"
+echo "-------------------------"
+tar pzcf ${TMP_PATH}${DATESTAMP}common-${HOSTNAME}-${HOSTTYPE}.tar.gz ${DIRS} ${EXCLUDE}
+echo "Done compressing common files/directories."
 
-	echo "Uploading the new backup..."
-	s3cmd put -f ${TMP_PATH}${DATESTAMP}${HOSTNAME}.tar.gz s3://${S3BUCKET}/${S3PATH}${PERIOD}/
-	echo "New backup uploaded."
+echo "Uploading common backup..."
+s3cmd put -f ${TMP_PATH}${DATESTAMP}common-${HOSTNAME}-${HOSTTYPE}.tar.gz s3://${S3BUCKET}/${S3PATH}${PERIOD}/
+echo "Common backup was uploaded."
 
-	echo "Removing the cache files..."
-	rm ${TMP_PATH}${DATESTAMP}${HOSTNAME}.tar.gz
-	echo "Cache file removed..."
+echo "Removing local common backup..."
+rm ${TMP_PATH}${DATESTAMP}common-${HOSTNAME}-${HOSTTYPE}.tar.gz
+echo "Local common backup was removed."
+echo
 
+# Backup separated files/directories with/without exclude list
+echo "Starting compression separated files/directories..."
+echo "Separate files listing:"
+echo "-------------------------"
+echo "${SEPARATED_DIRS}"
+echo "-------------------------"
+
+for OBJECT in $SEPARATED_DIRS; do
+
+	# Take name (last right side) of file/directory from full path
+	OBJ_NAME="${OBJECT##*/}"
+
+	echo "Starting compression '${OBJECT}' into '${DATESTAMP}${OBJ_NAME}.tar.gz'..."
+	tar pzcf ${TMP_PATH}${DATESTAMP}${OBJ_NAME}.tar.gz ${OBJECT} ${EXCLUDE}
+	echo "Compressing is done."
+
+	echo "Uploading separate backup..."
+	s3cmd put -f ${TMP_PATH}${DATESTAMP}${OBJ_NAME}.tar.gz s3://${S3BUCKET}/${S3PATH}${PERIOD}/
+	echo "Separate backup was uploaded."
+
+	echo "Removing local separate backup..."
+	rm ${TMP_PATH}${DATESTAMP}${OBJ_NAME}.tar.gz
+	echo "Local separate backup was removed."
+	echo
+
+done;
+
+echo "========================="
+echo "$(date +'%Y-%b-%d [%R]')"
+echo "========================="
 echo "All done."
