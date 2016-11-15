@@ -52,17 +52,17 @@ for DB in $DATABASES; do
 
 	# Dump database
 	echo "Starting backing up '${DB}' database into '${DATESTAMP}${DB}.gz'..."
-#	${MYSQLDUMPPATH}mysqldump --quick --user=${MYSQLROOT} --password=${MYSQLPASS} ${DB} | gzip > ${TMP_PATH}${DATESTAMP}${DB}.gz
+	${MYSQLDUMPPATH}mysqldump --quick --user=${MYSQLROOT} --password=${MYSQLPASS} ${DB} | gzip > ${TMP_PATH}${DATESTAMP}${DB}.gz
 	echo "Done backing up database to compressed file."
 
 	# Upload all databases
 	echo "Uploading database backup..."
-#	s3cmd put -f ${TMP_PATH}${DATESTAMP}${DB}.gz s3://${S3BUCKET}/${S3PATH}${PERIOD}/
+	s3cmd put -f ${TMP_PATH}${DATESTAMP}${DB}.gz s3://${S3BUCKET}/${S3PATH}${PERIOD}/
 	echo "Database backup was uploaded."
 
 	# Remove databases dumps
 	echo "Removing local backup..."
-#	rm ${TMP_PATH}${DATESTAMP}${DB}.gz
+	rm ${TMP_PATH}${DATESTAMP}${DB}.gz
 	echo "Local backup was removed."
 	echo
 
@@ -74,15 +74,15 @@ echo "Common objects listing:"
 echo "-------------------------"
 echo "${DIRS}"
 echo "-------------------------"
-#tar pzcf ${TMP_PATH}${DATESTAMP}common-${HOSTNAME}-${HOSTTYPE}.tar.gz ${DIRS} ${EXCLUDE}
+tar pzcf ${TMP_PATH}${DATESTAMP}common-${HOSTNAME}-${HOSTTYPE}.tar.gz ${DIRS} ${EXCLUDE}
 echo "Done compressing common files/directories."
 
 echo "Uploading common backup..."
-#s3cmd put -f ${TMP_PATH}${DATESTAMP}common-${HOSTNAME}-${HOSTTYPE}.tar.gz s3://${S3BUCKET}/${S3PATH}${PERIOD}/
+s3cmd put -f ${TMP_PATH}${DATESTAMP}common-${HOSTNAME}-${HOSTTYPE}.tar.gz s3://${S3BUCKET}/${S3PATH}${PERIOD}/
 echo "Common backup was uploaded."
 
 echo "Removing local common backup..."
-#rm ${TMP_PATH}${DATESTAMP}common-${HOSTNAME}-${HOSTTYPE}.tar.gz
+rm ${TMP_PATH}${DATESTAMP}common-${HOSTNAME}-${HOSTTYPE}.tar.gz
 echo "Local common backup was removed."
 echo
 
@@ -99,15 +99,15 @@ for OBJECT in $SEPARATED_DIRS; do
 	OBJ_NAME="${OBJECT##*/}"
 
 	echo "Starting compression '${OBJECT}' into '${DATESTAMP}${OBJ_NAME}.tar.gz'..."
-#	tar pzcf ${TMP_PATH}${DATESTAMP}${OBJ_NAME}.tar.gz ${OBJECT} ${EXCLUDE}
+	tar pzcf ${TMP_PATH}${DATESTAMP}${OBJ_NAME}.tar.gz ${OBJECT} ${EXCLUDE}
 	echo "Compressing is done."
 
 	echo "Uploading separate backup..."
-#	s3cmd put -f ${TMP_PATH}${DATESTAMP}${OBJ_NAME}.tar.gz s3://${S3BUCKET}/${S3PATH}${PERIOD}/
+	s3cmd put -f ${TMP_PATH}${DATESTAMP}${OBJ_NAME}.tar.gz s3://${S3BUCKET}/${S3PATH}${PERIOD}/
 	echo "Separate backup was uploaded."
 
 	echo "Removing local separate backup..."
-#	rm ${TMP_PATH}${DATESTAMP}${OBJ_NAME}.tar.gz
+	rm ${TMP_PATH}${DATESTAMP}${OBJ_NAME}.tar.gz
 	echo "Local separate backup was removed."
 	echo
 
